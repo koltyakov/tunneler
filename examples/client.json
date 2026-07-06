@@ -1,0 +1,17 @@
+{
+  "serverAddress": "vpn-host.example.com:7000",
+  "token": "change-me",
+  "tunnels": [
+    {
+      "name": "mssql",
+      "targetHost": "10.0.0.15",
+      "targetPort": 1433
+    },
+    {
+      "name": "postgres",
+      "localPort": 15432,
+      "targetHost": "10.0.0.20",
+      "targetPort": 5432
+    }
+  ]
+}
