@@ -1,26 +1,33 @@
 package proxy
 
 import (
+	"errors"
 	"io"
 	"net"
-	"sync"
 )
 
-func Pipe(a net.Conn, b net.Conn) {
-	var wg sync.WaitGroup
-	wg.Add(2)
+func Pipe(a net.Conn, b net.Conn) error {
+	errs := make(chan error, 2)
+	go func() { errs <- copyAndClose(a, b) }()
+	go func() { errs <- copyAndClose(b, a) }()
 
-	go copyAndClose(&wg, a, b)
-	go copyAndClose(&wg, b, a)
-
-	wg.Wait()
+	first := <-errs
+	if first != nil {
+		_ = a.Close()
+		_ = b.Close()
+	}
+	second := <-errs
+	return errors.Join(first, second)
 }
 
-func copyAndClose(wg *sync.WaitGroup, dst net.Conn, src net.Conn) {
-	defer wg.Done()
-	_, _ = io.Copy(dst, src)
+func copyAndClose(dst net.Conn, src net.Conn) error {
+	_, err := io.Copy(dst, src)
+	if err != nil {
+		return err
+	}
 	_ = closeWrite(dst)
 	_ = closeRead(src)
+	return nil
 }
 
 func closeWrite(conn net.Conn) error {

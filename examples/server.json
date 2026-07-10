@@ -1,4 +1,6 @@
 {
   "listenAddress": ":7000",
-  "token": "change-me"
+  "token": "change-me",
+  "maxConnections": 128,
+  "allowedTargets": ["10.0.0.15:1433"]
 }

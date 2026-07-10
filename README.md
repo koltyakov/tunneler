@@ -33,7 +33,9 @@ make check
 ```json
 {
   "listenAddress": ":7000",
-  "token": "change-me"
+  "token": "change-me",
+  "maxConnections": 128,
+  "allowedTargets": ["10.0.0.15:1433"]
 }
 ```
 
@@ -71,8 +73,12 @@ Then connect to `127.0.0.1:1433` from your local machine. Traffic is forwarded t
 
 Multiple tunnels can be configured in the same client config by adding more entries to `tunnels`. `name` and `localPort` are optional. When `localPort` is omitted, the client uses the same port as `targetPort`.
 
+The server and client default to at most 128 concurrent connections. Set `maxConnections` in either configuration to choose a different positive limit. When `allowedTargets` is present in the server configuration, requests for any other `host:port` are rejected. If it is omitted, authenticated clients may connect to any address reachable by the server.
+
 Configured tunnels are lazy. The client only opens local listeners at startup. It connects to the tunnel server and target host only when something connects to the corresponding local port, so unused tunnels do not create remote connections.
 
 ## Notes
 
-The token is a shared secret checked by the server before opening the target connection. It is not encryption. Use this only on trusted networks or place it behind a secure transport such as TLS/VPN/firewall rules.
+The token is required on both the client and server and is checked before opening the target connection. Configuration files reject unknown fields so misspellings fail at startup. The token is not encryption; use this only on trusted networks or place it behind a secure transport such as TLS/VPN/firewall rules.
+
+The client and server must run the same version because tunnel establishment responses are part of the wire protocol.

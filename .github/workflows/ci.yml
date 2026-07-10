@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Check formatting
+        run: make fmt-check
+      - name: Check module files
+        run: make tidy-check
+      - name: Vet
+        run: make vet
+      - name: Test with race detector
+        run: go test -race ./...
+      - name: Cross-build
+        run: make build-all
+      - name: Lint
+        uses: golangci/golangci-lint-action@v7
+        with:
+          version: v2.12.2
